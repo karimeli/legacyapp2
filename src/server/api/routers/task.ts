@@ -2,13 +2,40 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 
 export const taskRouter = createTRPCRouter({
-  // TAREAS
+  // 1. Obtener todas
   getAll: publicProcedure.query(({ ctx }) => {
-    return ctx.db.task.findMany({ include: { project: true }, orderBy: { createdAt: "desc" } });
+    return ctx.db.task.findMany({ 
+      include: { project: true }, 
+      orderBy: { createdAt: "desc" } 
+    });
   }),
 
+  // 2. Obtener una por ID (Agregado)
+  getById: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ ctx, input }) => {
+      return ctx.db.task.findUnique({
+        where: { id: input.id },
+        include: { project: true },
+      });
+    }),
+
+  // 3. Obtener Proyectos
+  getProjects: publicProcedure.query(({ ctx }) => {
+    return ctx.db.project.findMany({ 
+      include: { _count: { select: { tasks: true } } }, 
+      orderBy: { name: "asc" } 
+    });
+  }),
+
+  // 4. Crear Tarea
   create: publicProcedure
-    .input(z.object({ title: z.string().min(1), description: z.string().optional(), priority: z.string(), projectId: z.number() }))
+    .input(z.object({ 
+      title: z.string().min(1), 
+      description: z.string().optional(), 
+      priority: z.string(), 
+      projectId: z.number() 
+    }))
     .mutation(async ({ ctx, input }) => {
       return ctx.db.$transaction(async (tx) => {
         const task = await tx.task.create({ data: input });
@@ -17,6 +44,28 @@ export const taskRouter = createTRPCRouter({
       });
     }),
 
+  // 5. Editar Tarea (Agregado)
+  update: publicProcedure
+    .input(z.object({
+      id: z.number(),
+      title: z.string().min(1),
+      description: z.string().optional(),
+      priority: z.string(),
+      projectId: z.number()
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...data } = input;
+      return ctx.db.$transaction(async (tx) => {
+        const oldTask = await tx.task.findUnique({ where: { id } });
+        const updated = await tx.task.update({ where: { id }, data });
+        await tx.history.create({
+          data: { taskId: id, action: "EDICIÓN", oldValue: oldTask?.title, newValue: data.title }
+        });
+        return updated;
+      });
+    }),
+
+  // 6. Cambiar Estado
   updateStatus: publicProcedure
     .input(z.object({ id: z.number(), status: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -28,50 +77,7 @@ export const taskRouter = createTRPCRouter({
       });
     }),
 
-  delete: publicProcedure.input(z.object({ id: z.number() })).mutation(({ ctx, input }) => {
-    return ctx.db.task.delete({ where: { id: input.id } });
-  }),
-
-  // PROYECTOS
-  getAllProjects: publicProcedure.query(({ ctx }) => {
-    return ctx.db.project.findMany({ include: { _count: { select: { tasks: true } } }, orderBy: { createdAt: "desc" } });
-  }),
-
-  createProject: publicProcedure
-    .input(z.object({ name: z.string().min(1) }))
-    .mutation(({ ctx, input }) => ctx.db.project.create({ data: input })),
-
-  deleteProject: publicProcedure.input(z.object({ id: z.number() })).mutation(({ ctx, input }) => {
-    return ctx.db.project.delete({ where: { id: input.id } });
-  }),
-
-  // REPORTES Y BÚSQUEDA
-  getReportData: publicProcedure.query(async ({ ctx }) => {
-    const [total, status, projects] = await Promise.all([
-      ctx.db.task.count(),
-      ctx.db.task.groupBy({ by: ['status'], _count: { id: true } }),
-      ctx.db.project.findMany({ include: { _count: { select: { tasks: true } } } })
-    ]);
-    return { total, status, projects: projects.map(p => ({ name: p.name, count: p._count.tasks })) };
-  }),
-
-  searchTasks: publicProcedure
-    .input(z.object({ query: z.string().optional(), status: z.string().optional(), projectId: z.number().optional() }))
-    .query(({ ctx, input }) => {
-      return ctx.db.task.findMany({
-        where: {
-          AND: [
-            input.query ? { title: { contains: input.query, mode: 'insensitive' } } : {},
-            input.status ? { status: input.status } : {},
-            input.projectId ? { projectId: input.projectId } : {},
-          ]
-        },
-        include: { project: true },
-        orderBy: { createdAt: 'desc' }
-      });
-    }),
-
-  // AVANCES E HISTORIAL
+  // 7. Comentarios e Historial
   addComment: publicProcedure
     .input(z.object({ taskId: z.number(), text: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
@@ -88,5 +94,9 @@ export const taskRouter = createTRPCRouter({
 
   getHistory: publicProcedure.input(z.object({ taskId: z.number() })).query(({ ctx, input }) => {
     return ctx.db.history.findMany({ where: { taskId: input.taskId }, orderBy: { timestamp: "desc" } });
+  }),
+
+  delete: publicProcedure.input(z.object({ id: z.number() })).mutation(({ ctx, input }) => {
+    return ctx.db.task.delete({ where: { id: input.id } });
   }),
 });
