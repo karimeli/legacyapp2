@@ -1,21 +1,51 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// prisma/schema.prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
 generator client {
-    provider = "prisma-client-js"
-    output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
-datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+model Project {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  tasks       Task[]
+  createdAt   DateTime @default(now())
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+model Task {
+  id             Int       @id @default(autoincrement())
+  title          String
+  description    String?
+  status         String    @default("Pendiente")
+  priority       String    @default("Media")
+  dueDate        DateTime?
+  estimatedHours Float?
+  projectId      Int
+  project        Project   @relation(fields: [projectId], references: [id])
+  comments       Comment[]
+  history        History[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
 
-    @@index([name])
+model Comment {
+  id        Int      @id @default(autoincrement())
+  taskId    Int
+  task      Task     @relation(fields: [taskId], references: [id])
+  text      String
+  createdAt DateTime @default(now())
+}
+
+model History {
+  id        Int      @id @default(autoincrement())
+  taskId    Int
+  task      Task     @relation(fields: [taskId], references: [id])
+  action    String
+  oldValue  String?
+  newValue  String?
+  timestamp DateTime @default(now())
 }
