@@ -1,6 +1,112 @@
 @import "tailwindcss";
 
-@theme {
+/* Tipografía */
+:root {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  /* Paleta de Colores Personalizada */
+  --color-brand-50: #f0f7ff;
+  --color-brand-100: #e0effe;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-900: #1e3a8a;
+
+  /* Variables de superficie para modo oscuro/claro */
+  --color-surface-50: #ffffff;
+  --color-surface-100: #f8fafc;
+  --color-surface-200: #f1f5f9;
+  --color-surface-900: #0f172a;
+
+  /* Radios de borde modernos */
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+
+  /* Animaciones suaves */
+  --animate-subtle: fade-in 0.3s ease-out;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-surface-100);
+    color: var(--color-surface-900);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+@layer components {
+  /* Estilo para las tarjetas de tareas y proyectos */
+  .card-gradient {
+    background-color: #fff;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 1px 2px 0 rgb(15 23 42 / 0.05);
+    transition: all 0.3s;
+  }
+  .card-gradient:hover {
+    box-shadow: 0 4px 6px -1px rgb(15 23 42 / 0.07), 0 2px 4px -2px rgb(15 23 42 / 0.06);
+    border-color: #e2e8f0;
+  }
+
+  /* Botones con estilo premium */
+  .btn-primary {
+    background-color: #0f172a;
+    color: #fff;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+    border-radius: 1rem;
+    font-weight: bold;
+    transition: all 0.2s;
+    box-shadow: 0 10px 15px -3px rgb(226 232 240 / 0.1), 0 4px 6px -4px rgb(226 232 240 / 0.1);
+  }
+  .btn-primary:hover {
+    background-color: #1e293b;
+  }
+  .btn-primary:active {
+    transform: scale(0.98);
+  }
+
+  /* Scrollbar personalizada para la sección de comentarios e historial */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 5px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 9999px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1;
+  }
+}
+
+/* If you want to avoid performance hints, use only opacity or remove transform. */
+/* Alternative to fade-in using transform for better performance */
+@keyframes fade-in {
+  from { transform: translateY(10px) scale(0.98); }
+  to { transform: translateY(0) scale(1); }
+}
+/* Agregado a tus capas de componentes */
+@layer components {
+  .btn-delete {
+    padding: 0.5rem;
+    color: #cbd5e1; /* text-slate-300 */
+    transition-property: all;
+    transition-duration: 200ms;
+    border-radius: 0.75rem; /* rounded-xl */
+  }
+  .btn-delete:hover {
+    color: #ef4444; /* text-red-500 */
+    background-color: #fef2f2; /* bg-red-50 */
+    transform: scale(1.10);
+  }
+  .btn-delete:active {
+    transform: scale(0.95);
+  }
 }
