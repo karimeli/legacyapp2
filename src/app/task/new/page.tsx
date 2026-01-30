@@ -12,9 +12,9 @@ export default function NewTaskPage() {
     projectId: undefined as number | undefined 
   });
   
-  const { data: projects } = api.task.getProjects.useQuery();
+  const { data: projects, isLoading } = api.task.getProjects.useQuery();
   
-  // Si cargan los proyectos y no hay uno seleccionado, tomamos el primero
+  // Pre-seleccionar el primer proyecto cuando carguen los datos
   useEffect(() => {
     if (projects && projects.length > 0 && !formData.projectId) {
       setFormData(prev => ({ ...prev, projectId: projects[0]?.id }));
@@ -27,13 +27,23 @@ export default function NewTaskPage() {
 
   const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // 1. VALIDACIÓN: Si no hay proyecto, detenemos el envío y avisamos.
+    if (!formData.projectId) {
+      alert("Debes seleccionar un proyecto obligatoriamente.");
+      return;
+    }
+
     createMutation.mutate({
       title: formData.title,
       description: formData.description || undefined,
       priority: formData.priority,
-      projectId: formData.projectId && formData.projectId > 0 ? formData.projectId : undefined,
+      // 2. CORRECCIÓN DE TIPO: Al pasar la validación anterior, TypeScript ya sabe que esto es un número.
+      projectId: formData.projectId, 
     });
   };
+
+  if (isLoading) return <div className="p-10 text-center">Cargando formulario...</div>;
 
   return (
     <div className="max-w-2xl mx-auto p-6">
@@ -48,7 +58,6 @@ export default function NewTaskPage() {
             value={formData.title}
             onChange={e => setFormData({...formData, title: e.target.value})}
             placeholder="Ingrese el título de la tarea"
-            title="Título de la tarea"
           />
         </div>
 
@@ -59,18 +68,17 @@ export default function NewTaskPage() {
             value={formData.description}
             onChange={e => setFormData({...formData, description: e.target.value})}
             placeholder="Ingrese la descripción de la tarea"
-            title="Descripción de la tarea"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Prioridad</label>
+            <label htmlFor="priority" className="block text-sm font-medium text-slate-700 mb-1">Prioridad</label>
             <select 
+              id="priority"
               className="w-full border p-2 rounded-lg"
               value={formData.priority}
               onChange={e => setFormData({...formData, priority: e.target.value})}
-              title="Prioridad de la tarea"
             >
               <option>Baja</option>
               <option>Media</option>
@@ -78,17 +86,18 @@ export default function NewTaskPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Proyecto</label>
+            <label htmlFor="project" className="block text-sm font-medium text-slate-700 mb-1">Proyecto</label>
             <select 
+              id="project"
+              required
               className="w-full border p-2 rounded-lg"
               value={formData.projectId ?? ""}
               onChange={e => {
-                const v = e.target.value;
-                setFormData(prev => ({ ...prev, projectId: v === "" ? undefined : Number(v) }));
+                const val = e.target.value;
+                setFormData(prev => ({ ...prev, projectId: val ? Number(val) : undefined }));
               }}
-              title="Proyecto asociado"
             >
-              {(!projects || projects.length === 0) && <option value="">Crear automáticamente...</option>}
+              <option value="">Seleccione un proyecto...</option>
               {projects?.map(p => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
@@ -98,7 +107,7 @@ export default function NewTaskPage() {
 
         {createMutation.isError && (
           <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
-            Error al crear la tarea: {createMutation.error.message}
+            Error: {createMutation.error.message}
           </div>
         )}
 
