@@ -32,6 +32,11 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
 };
 
 /**
+ * Defines the shape of the context passed to procedures
+ */
+export type Context = Awaited<ReturnType<typeof createTRPCContext>>;
+
+/**
  * 2. INITIALIZATION
  *
  * This is where the tRPC API is initialized, connecting the context and transformer. We also parse
