@@ -28,8 +28,10 @@ export default function NewTaskPage() {
   const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     createMutation.mutate({
-      ...formData,
-      projectId: formData.projectId
+      title: formData.title,
+      description: formData.description || undefined,
+      priority: formData.priority,
+      projectId: formData.projectId && formData.projectId > 0 ? formData.projectId : undefined,
     });
   };
 
@@ -79,17 +81,26 @@ export default function NewTaskPage() {
             <label className="block text-sm font-medium text-slate-700 mb-1">Proyecto</label>
             <select 
               className="w-full border p-2 rounded-lg"
-              value={formData.projectId}
-              onChange={e => setFormData({...formData, projectId: Number(e.target.value)})}
+              value={formData.projectId ?? ""}
+              onChange={e => {
+                const v = e.target.value;
+                setFormData(prev => ({ ...prev, projectId: v === "" ? undefined : Number(v) }));
+              }}
               title="Proyecto asociado"
             >
-              {projects?.length === 0 && <option value="">Crear automáticamente...</option>}
+              {(!projects || projects.length === 0) && <option value="">Crear automáticamente...</option>}
               {projects?.map(p => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
             </select>
           </div>
         </div>
+
+        {createMutation.isError && (
+          <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+            Error al crear la tarea: {createMutation.error.message}
+          </div>
+        )}
 
         <div className="flex gap-4 pt-4">
           <button 

@@ -41,6 +41,11 @@ export const taskRouter = createTRPCRouter({
         }
       }
 
+      // Asegurar que tenemos un projectId válido antes de crear la tarea
+      if (finalProjectId === undefined) {
+        throw new Error("No se pudo determinar el proyecto para la tarea");
+      }
+
       const newTask = await ctx.db.task.create({
         data: {
           title: input.title,
