@@ -11,6 +11,7 @@ export default function TaskDetailPage() {
   
   const id = params.id ? parseInt(String(params.id), 10) : NaN;
   
+  // Update these method names to match your actual router definitions
   const { data: task, isLoading, isError, refetch } = api.task.getById.useQuery(
     { id },
     { enabled: !isNaN(id) }
@@ -33,7 +34,7 @@ export default function TaskDetailPage() {
       <div className="lg:col-span-2 space-y-6">
         <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
           <div className="flex justify-between items-start mb-4">
-            <button onClick={() => router.back()} className="text-sm text-slate-400 hover:text-blue-600 mb-4">← Volver</button>
+            <button type="button" onClick={() => router.back()} className="text-sm text-slate-400 hover:text-blue-600 mb-4">← Volver</button>
             <span className="text-xs font-mono text-slate-400">ID: #{task.id}</span>
           </div>
           
@@ -78,6 +79,7 @@ export default function TaskDetailPage() {
               className="flex-1 border border-slate-300 px-4 py-2 rounded-lg outline-none focus:border-blue-500"
             />
             <button 
+              type="button"
               onClick={() => commentMutation.mutate({ taskId: task.id, text: commentText })}
               disabled={commentMutation.isPending || !commentText.trim()}
               className="bg-slate-900 text-white px-4 py-2 rounded-lg font-medium hover:bg-slate-800 disabled:opacity-50"
@@ -87,7 +89,7 @@ export default function TaskDetailPage() {
           </div>
           
           <div className="space-y-4">
-            {task.comments?.map(c => (
+            {task.comments?.map((c: { id: number; text: string; createdAt: Date }) => (
               <div key={c.id} className="bg-slate-50 p-4 rounded-xl">
                 <p className="text-slate-800 text-sm">{c.text}</p>
                 <p className="text-xs text-slate-400 mt-2 text-right">{c.createdAt.toLocaleString()}</p>
@@ -103,7 +105,7 @@ export default function TaskDetailPage() {
           <h3 className="font-bold text-lg mb-4 border-b pb-2">Historial de Cambios</h3>
           <div className="space-y-6 relative pl-2">
             <div className="absolute left-2 top-2 bottom-2 w-0.5 bg-slate-100"></div>
-            {task.history?.map(h => (
+            {task.history?.map((h: { id: number; action: string; oldValue?: string; newValue?: string; timestamp: Date }) => (
               <div key={h.id} className="relative pl-6">
                 <div className="absolute left-0 top-1.5 w-4 h-4 bg-blue-100 border-2 border-blue-500 rounded-full z-10"></div>
                 <p className="text-xs font-bold text-slate-700 uppercase mb-1">{h.action}</p>

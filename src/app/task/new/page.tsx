@@ -1,26 +1,35 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 
 export default function NewTaskPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({ title: "", description: "", priority: "Media", projectId: 1 });
+  const [formData, setFormData] = useState({ 
+    title: "", 
+    description: "", 
+    priority: "Media", 
+    projectId: undefined as number | undefined 
+  });
   
-  // Obtenemos proyectos para el select
   const { data: projects } = api.task.getProjects.useQuery();
   
+  // Si cargan los proyectos y no hay uno seleccionado, tomamos el primero
+  useEffect(() => {
+    if (projects && projects.length > 0 && !formData.projectId) {
+      setFormData(prev => ({ ...prev, projectId: projects[0]?.id }));
+    }
+  }, [projects]);
+
   const createMutation = api.task.create.useMutation({
-    onSuccess: () => router.push("/task") // Redirigir al dashboard al terminar
+    onSuccess: () => router.push("/task")
   });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     createMutation.mutate({
-      title: formData.title,
-      description: formData.description,
-      priority: formData.priority,
-      projectId: Number(formData.projectId)
+      ...formData,
+      projectId: formData.projectId
     });
   };
 
@@ -30,34 +39,36 @@ export default function NewTaskPage() {
       
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 space-y-6">
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-slate-700 mb-1">Título</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Título</label>
           <input 
-            id="title"
             required
             className="w-full border p-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
             value={formData.title}
             onChange={e => setFormData({...formData, title: e.target.value})}
+            placeholder="Ingrese el título de la tarea"
+            title="Título de la tarea"
           />
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-slate-700 mb-1">Descripción</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Descripción</label>
           <textarea 
-            id="description"
             className="w-full border p-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 h-32"
             value={formData.description}
             onChange={e => setFormData({...formData, description: e.target.value})}
+            placeholder="Ingrese la descripción de la tarea"
+            title="Descripción de la tarea"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="priority" className="block text-sm font-medium text-slate-700 mb-1">Prioridad</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Prioridad</label>
             <select 
-              id="priority"
               className="w-full border p-2 rounded-lg"
               value={formData.priority}
               onChange={e => setFormData({...formData, priority: e.target.value})}
+              title="Prioridad de la tarea"
             >
               <option>Baja</option>
               <option>Media</option>
@@ -65,13 +76,14 @@ export default function NewTaskPage() {
             </select>
           </div>
           <div>
-            <label htmlFor="projectId" className="block text-sm font-medium text-slate-700 mb-1">Proyecto</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Proyecto</label>
             <select 
-              id="projectId"
               className="w-full border p-2 rounded-lg"
               value={formData.projectId}
               onChange={e => setFormData({...formData, projectId: Number(e.target.value)})}
+              title="Proyecto asociado"
             >
+              {projects?.length === 0 && <option value="">Crear automáticamente...</option>}
               {projects?.map(p => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
@@ -87,11 +99,7 @@ export default function NewTaskPage() {
           >
             {createMutation.isPending ? "Guardando..." : "Crear Tarea"}
           </button>
-          <button 
-            type="button" 
-            onClick={() => router.back()}
-            className="px-6 py-2 border border-slate-300 rounded-lg font-medium hover:bg-slate-50"
-          >
+          <button type="button" onClick={() => router.back()} className="px-6 py-2 border border-slate-300 rounded-lg font-medium">
             Cancelar
           </button>
         </div>
