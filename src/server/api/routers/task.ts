@@ -81,9 +81,22 @@ export const taskRouter = createTRPCRouter({
   // 5. Agregar Comentario (Detalle)
   addComment: publicProcedure
     .input(z.object({ taskId: z.number(), text: z.string().min(1) }))
-    .mutation(({ ctx, input }) => {
-      return ctx.db.comment.create({
-        data: { taskId: input.taskId, text: input.text },
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.$transaction(async (tx) => {
+        const newComment = await tx.comment.create({
+          data: { taskId: input.taskId, text: input.text },
+        });
+
+        await tx.history.create({
+          data: {
+            taskId: input.taskId,
+            action: "COMENTARIO",
+            oldValue: "",
+            newValue: input.text,
+          },
+        });
+
+        return newComment;
       });
     }),
     
