@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure, type Context } from "@/server/api/trpc";
+import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 
 export const taskRouter = createTRPCRouter({
   // 1. Obtener todas (Dashboard)
-  getAll: publicProcedure.query(({ ctx }: { ctx: Context }) => {
+  getAll: publicProcedure.query(({ ctx }) => {
     return ctx.db.task.findMany({
       include: { project: true },
       orderBy: { createdAt: "desc" },
@@ -13,7 +13,7 @@ export const taskRouter = createTRPCRouter({
   // 2. Obtener una por ID (Detalle)
   getById: publicProcedure
     .input(z.object({ id: z.number() }))
-    .query(({ ctx, input }: { ctx: Context; input: { id: number } }) => {
+    .query(({ ctx, input }) => {
       return ctx.db.task.findUnique({
         where: { id: input.id },
         include: { 
@@ -32,7 +32,7 @@ export const taskRouter = createTRPCRouter({
       priority: z.string(),
       projectId: z.number() // Asumiremos ID 1 por defecto si no hay selector de proyectos
     }))
-    .mutation(async ({ ctx, input }: { ctx: Context; input: { title: string; description?: string; priority: string; projectId: number } }) => {
+    .mutation(async ({ ctx, input }) => {
       const newTask = await ctx.db.task.create({
         data: {
           title: input.title,
@@ -54,11 +54,11 @@ export const taskRouter = createTRPCRouter({
       id: z.number(), 
       status: z.string() 
     }))
-    .mutation(async ({ ctx, input }: { ctx: Context; input: { id: number; status: string } }) => {
+    .mutation(async ({ ctx, input }) => {
       const oldTask = await ctx.db.task.findUnique({ where: { id: input.id } });
       if (!oldTask) throw new Error("Tarea no encontrada");
 
-      return ctx.db.$transaction(async (tx: any) => {
+      return ctx.db.$transaction(async (tx) => {
         const updated = await tx.task.update({
           where: { id: input.id },
           data: { status: input.status },
@@ -81,14 +81,14 @@ export const taskRouter = createTRPCRouter({
   // 5. Agregar Comentario (Detalle)
   addComment: publicProcedure
     .input(z.object({ taskId: z.number(), text: z.string().min(1) }))
-    .mutation(({ ctx, input }: { ctx: Context; input: { taskId: number; text: string } }) => {
+    .mutation(({ ctx, input }) => {
       return ctx.db.comment.create({
         data: { taskId: input.taskId, text: input.text },
       });
     }),
     
   // 6. Obtener Proyectos (Para el select de crear tarea)
-  getProjects: publicProcedure.query(({ ctx }: { ctx: Context }) => {
+  getProjects: publicProcedure.query(({ ctx }) => {
     return ctx.db.project.findMany();
   }),
 });

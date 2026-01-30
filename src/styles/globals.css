@@ -1,22 +1,6 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --color-brand: #2563eb;
-}
-
-@layer base {
-  body {
-    @apply bg-slate-50 text-slate-900 antialiased;
-  }
-}
-
-@layer components {
-  .card {
-    @apply bg-white rounded-xl border border-slate-200 shadow-sm transition-all;
-  }
-  
-  .btn-primary {
-    @apply bg-brand text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 active:scale-95 transition-all;
-  }
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
