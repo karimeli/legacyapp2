@@ -21,8 +21,6 @@ model Task {
   description    String?
   status         String    @default("Pendiente")
   priority       String    @default("Media")
-  dueDate        DateTime?
-  estimatedHours Float?
   projectId      Int
   project        Project   @relation(fields: [projectId], references: [id])
   comments       Comment[]
