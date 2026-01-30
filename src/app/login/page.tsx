@@ -7,14 +7,14 @@ export default function LoginPage() {
   const router = useRouter();
 
   const handleLogin = () => {
-    // Validamos contra tu variable de entorno (aquí hardcodeada para el ejemplo)
+    // Validación de la contraseña maestra
     if (password === "admin123") {
-      // 1. Creamos la cookie de sesión
+      // 1. Crear la cookie de sesión
       document.cookie = "admin_session=true; path=/; max-age=86400; SameSite=Lax";
       
-      // 2. Redirigimos a la carpeta /tasks
-      router.push("/tasks");
-      // Forzamos un refresco para que el middleware detecte la nueva cookie
+      // 2. Redirigir a la sección de tareas
+      router.push("/task");
+      // Refrescar para que el middleware valide la nueva cookie
       router.refresh(); 
     } else {
       alert("Acceso denegado: Contraseña incorrecta");
