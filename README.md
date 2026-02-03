@@ -1,29 +1,67 @@
-# Create T3 App
+# LegacyApp 2.0 Documentation
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+LegacyApp 2.0 is a modern task management web application built with the Next.js App Router. It features a secure administrative interface, real-time task tracking, and an automated activity history log.
 
-## What's next? How do I make an app with this?
+## 🚀 Tech Stack
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+* **Framework**: Next.js 15.1.6 (App Router)
+* **Language**: TypeScript
+* **Styling**: Tailwind CSS 4
+* **Database**: Vercel Postgres
+* **Icons**: Lucide React
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## 🛠️ Project Structure
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+The application follows the Next.js directory convention:
 
-## Learn More
+* **app/page.tsx**: The main client-side entry point containing UI logic, state management, and authentication views.
+* **app/api/task/route.ts**: Server-side API endpoint for fetching and creating tasks using PostgreSQL.
+* **package.json**: Configuration for dependencies including React 19 and Next.js 16.
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+## 🔑 Key Features
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+### 1. Administrative Authentication
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+The application includes a protected access layer. Users must authenticate via a password-protected login screen before accessing tasks. Session state is managed using `sessionStorage` to maintain the `admin_session`.
 
-## How do I deploy this?
+### 2. Task Management
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+Users can perform full CRUD operations on tasks:
+
+* **Create**: Add new tasks via a dedicated input form.
+* **Read**: Fetch and display all tasks ordered by creation date.
+* **Update**: Toggle task status between pending and completed.
+* **Delete**: Remove tasks with a confirmation prompt.
+
+### 3. Activity History
+
+Every major action (like creating a task) is automatically logged into a history table in the database. Users can switch to the **Historial** view to see a chronological record of actions and timestamps.
+
+## 🚦 API Endpoints
+
+### Tasks (`/api/task`)
+
+* **GET**: Retrieves all rows from the tasks table, ordered by `created_at` DESC.
+* **POST**: Accepts a title in the request body, inserts the task as pending, and simultaneously creates a log entry in the history table.
+
+## 💻 Development
+
+### Installation
+
+```bash
+npm install
+
+```
+
+### Environment Variables
+
+Ensure you have a `.env.local` file configured with your Vercel Postgres credentials to enable database connectivity.
+
+### Running the server
+
+```bash
+npm run dev
+
+```
+
+Open [http://localhost:3000](https://www.google.com/search?q=http://localhost:3000) to view the application in development mode
